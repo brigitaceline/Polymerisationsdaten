@@ -1,0 +1,7 @@
+flask
+langchain
+openai
+faiss-cpu
+unstructured
+python-dotenv
+werkzeug

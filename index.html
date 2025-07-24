@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Document Chatbot</title>
+    <style>
+      body { font-family: sans-serif; margin: 40px; }
+      #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; }
+      .msg { margin-bottom: 10px; }
+      .user { color: blue; }
+      .bot { color: green; }
+    </style>
+  </head>
+  <body>
+    <h1>Upload a document</h1>
+    <input type="file" id="fileInput" />
+    <button id="uploadBtn">Upload & Index</button>
+
+    <h2>Chat</h2>
+    <div id="chat"></div>
+    <input type="text" id="questionInput" placeholder="Ask a question..." style="width:80%;" />
+    <button id="askBtn">Ask</button>
+
+    <script>
+      let indexPath = null;
+      document.getElementById('uploadBtn').onclick = async () => {
+        const file = document.getElementById('fileInput').files[0];
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch('/upload', { method: 'POST', body: form });
+        const data = await res.json();
+        indexPath = data.index_path;
+        alert('Indexed at ' + indexPath);
+      };
+
+      document.getElementById('askBtn').onclick = async () => {
+        const question = document.getElementById('questionInput').value;
+        if (!indexPath) { alert('Please upload first'); return; }
+        appendMessage('You', question, 'user');
+        const res = await fetch('/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, index_path: indexPath })
+        });
+        const data = await res.json();
+        appendMessage('Bot', data.answer, 'bot');
+      };
+
+      function appendMessage(sender, text, cls) {
+        const el = document.createElement('div');
+        el.className = 'msg ' + cls;
+        el.textContent = sender + ': ' + text;
+        document.getElementById('chat').appendChild(el);
+        document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+      }
+    </script>
+  </body>
+</html>
